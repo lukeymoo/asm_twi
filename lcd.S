@@ -15,10 +15,14 @@
 ; Bit 2 - PCF Enable Pin
 ; Bit 3 - PCF Backlight Control
 ; Control these bits with sbi/cbi
-.equ PCF_RS, 1
-.equ PCF_RW, 2
-.equ PCF_ENABLE, 3
-.equ PCF_BACKLIGHT, 4
+.equ PCF_RS, 0x01
+.equ PCF_RW, 0x02
+.equ PCF_ENABLE, 0x04
+.equ PCF_BACKLIGHT, 0x08
+; We cannot use decimal as a bit #
+; After debugging with oscillscope, discovered these representations are binary MASKS
+; So foolishly our `bit 3` became a mask of 0000 0011
+; I should have read avr instructions datasheet more carefully
 
 .text 
 
@@ -86,6 +90,11 @@ SEND_NIBBLE_CMD: ; Send byte in 2 part Nibbles || Data to send is in r26
 
     ldi r21, 0x0f ; low mask
     and r21, r26 ; grab bits store in r21
+    ; Shift low bits to high(non control bits)
+    lsl r21 
+    lsl r21 
+    lsl r21 
+    lsl r21 
 
     ; Start condition
     call TWI_START
@@ -127,7 +136,7 @@ SEND_NIBBLE_CMD: ; Send byte in 2 part Nibbles || Data to send is in r26
 
     ; Low bytes ENABLE
     sbr r21, PCF_ENABLE
-    cbr r21, PCF_BACKLIGHT
+    sbr r21, PCF_BACKLIGHT
     mov r26, r21
     call SEND_BYTE
 
@@ -151,4 +160,12 @@ SEND_NIBBLE_CMD: ; Send byte in 2 part Nibbles || Data to send is in r26
 
 ; Sends byte of data in 2 parts(4 bit mode)
 SEND_NIBBLE_DATA:
+    ; create masks
+    ldi r20, 0xf0 ; high mask
+    and r20, r26 ; grab bits store in r20
+
+    ldi r21, 0x0f ; low mask
+    and r21, r26 ; grab bits store in r21
+
+    ; send high bytes with RS/Enable
     ret

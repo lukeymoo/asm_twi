@@ -11,7 +11,9 @@
 .text
 
 INIT: ; Sets up and enables TWI Hardware
-    ldi r16, 0x11
+    ldi r16, 92
+    ; Was using decimal 17 before to achieve 400 KHz, however that exceeds the backpack the LCD is using
+    ; We are using 100 kHz via TWBR @ decimal 92
     sts TWBR, r16 ; Set TWBR(Bit Rate divisor) to decimal 17 @ 20 MHz to achieve 400 kHz Baud
 
     ldi r16, (1 << TWINT) | (1 << TWEN) ; Mask for enable TWI Hardware
