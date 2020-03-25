@@ -61,6 +61,7 @@ SEND_BYTE_CMD: ; CMD is stored in r26
     
     ; Send byte, uses X register
     call SEND_BYTE
+    
     ; wait at least 450 ns
     call DELAY_ENABLE
 
@@ -108,6 +109,7 @@ SEND_NIBBLE_CMD: ; Send byte in 2 part Nibbles || Data to send is in r26
     sbr r20, PCF_ENABLE
     mov r26, r20 ; r26 for function ( we dont need to preserve byte )
     call SEND_BYTE
+    call TWI_STOP ; Stop
 
     ; Start condition
     call TWI_START ; uses r24 internally
@@ -123,6 +125,7 @@ SEND_NIBBLE_CMD: ; Send byte in 2 part Nibbles || Data to send is in r26
     ; High bytes NOT ENABLE
     cbr r26, PCF_ENABLE
     call SEND_BYTE
+    call TWI_STOP ; Stop
 
     ; Start condition
     call TWI_START ; uses r24 internally
@@ -139,6 +142,7 @@ SEND_NIBBLE_CMD: ; Send byte in 2 part Nibbles || Data to send is in r26
     sbr r21, PCF_BACKLIGHT
     mov r26, r21
     call SEND_BYTE
+    call TWI_STOP ; Stop
 
     ; Send start
     call TWI_START
@@ -147,15 +151,14 @@ SEND_NIBBLE_CMD: ; Send byte in 2 part Nibbles || Data to send is in r26
 
     ; Send SLA+W
     ldi r26, LCD_ADDR
+    call SLA_W
 
     pop r26 ; restore byte config
 
     ; Low bytes NOT ENABLE 
     cbr r26, PCF_ENABLE 
-    call SEND_BYTE 
-
-    ; Send stop
-    call TWI_STOP 
+    call SEND_BYTE
+    call TWI_STOP ; Stop
     ret
 
 ; Sends byte of data in 2 parts(4 bit mode)
@@ -166,6 +169,73 @@ SEND_NIBBLE_DATA:
 
     ldi r21, 0x0f ; low mask
     and r21, r26 ; grab bits store in r21
+    ; move low bits to high(non control) bits
+    lsl r21
+    lsl r21
+    lsl r21
+    lsl r21
 
-    ; send high bytes with RS/Enable
+    ; Start condition
+    call TWI_START
+
+    ; Send SLA+W
+    ldi r26, LCD_ADDR
+    call SLA_W
+
+    ; High byte ENABLE/RS/BACKLIGHT
+    mov r26, r20
+    sbr r26, PCF_ENABLE
+    sbr r26, PCF_RS
+    sbr r26, PCF_BACKLIGHT
+    call SEND_BYTE
+
+    ; Send Start
+    call TWI_START
+
+    push r26 ; Preserve high byte config
+
+    ; Send SLA+W
+    ldi r26, LCD_ADDR
+    call SLA_W
+
+    pop r26 ; Restore high byte config
+
+    ; high byte BACKLIGHT/RS/NOT ENABLE
+    cbr r26, PCF_ENABLE ; Clear enable
+    call SEND_BYTE
+    call TWI_STOP 
+
+    ; Start condition
+    call TWI_START
+
+    ; Done with high byte so don't push r26
+    ; Send SLA+W
+    ldi r26, LCD_ADDR
+    call SLA_W
+
+    ; low byte BACKLIGHT/RS/ENABLE
+    mov r26, r21
+    sbr r26, PCF_BACKLIGHT
+    sbr r26, PCF_ENABLE
+    sbr r26, PCF_RS
+    call SEND_BYTE
+    call TWI_STOP 
+
+    ; Start condition
+    call TWI_START
+
+    push r26 ; preserve low byte config
+
+    ; Send SLA+W
+    ldi r26, LCD_ADDR
+    call SLA_W
+
+    pop r26 ; restore low byte config
+
+    ; low byte BACKLIGHT/RS/NOT ENABLE
+    cbr r26, PCF_ENABLE
+    call SEND_BYTE
+
+    ; Send stop
+    call TWI_STOP
     ret

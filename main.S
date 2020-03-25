@@ -61,6 +61,11 @@ DELAY3: sbiw r24, 1
     ldi r27, 0
     call SEND_NIBBLE_CMD
 
+    ; display function || display on, cursor on, blink on
+    ldi r26, 0x0f
+    ldi r27, 0
+    call SEND_NIBBLE_CMD
+
     ; Send letter A
     ldi r26, 0x41
     ldi r27, 0
