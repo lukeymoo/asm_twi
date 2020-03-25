@@ -2,63 +2,63 @@
 ; This includes initialization, outputting/reading data bus
 ; Start/Stop conditions etc
 
-.global INIT
-.global TWI_START
-.global SLA_W 
-.global SEND_BYTE
-.global TWI_STOP
+.GLOBAL INIT
+.GLOBAL TWI_START
+.GLOBAL SLA_W 
+.GLOBAL SEND_BYTE
+.GLOBAL TWI_STOP
 
-.text
+.TEXT
 
 INIT: ; Sets up and enables TWI Hardware
-    ldi r16, 92
+    LDI R16, 92
     ; Was using decimal 17 before to achieve 400 KHz, however that exceeds the backpack the LCD is using
     ; We are using 100 kHz via TWBR @ decimal 92
-    sts TWBR, r16 ; Set TWBR(Bit Rate divisor) to decimal 17 @ 20 MHz to achieve 400 kHz Baud
+    STS TWBR, R16 ; Set TWBR(Bit Rate divisor) to decimal 17 @ 20 MHz to achieve 400 kHz Baud
 
-    ldi r16, (1 << TWINT) | (1 << TWEN) ; Mask for enable TWI Hardware
-    sts TWCR, r16 ; Enable TWI Hardware via indirect addressing `ST`
-    ret
+    LDI R16, (1 << TWINT) | (1 << TWEN) ; Mask for enable TWI Hardware
+    STS TWCR, R16 ; Enable TWI Hardware via indirect addressing `ST`
+    RET
 
 TWI_START:
-    ; Call TWI interrupt to generate start condition
-    ldi r16, (1 << TWINT) | (1 << TWEN) | (1 << TWSTA)
-    sts TWCR, r16 ; Interrupt called
+    ; CALL TWI interrupt to generate start condition
+    LDI R16, (1 << TWINT) | (1 << TWEN) | (1 << TWSTA)
+    STS TWCR, R16 ; Interrupt CALLed
 LOOP_TWI_START:
     ; wait for clear -- using method I found with gcc -O3
-    lds r24, TWCR ; Grab control register
-    sbrs r24, TWINT ; Test TWINT bit
-    rjmp LOOP_TWI_START
-    ret
+    LDS R24, TWCR ; Grab control register
+    SBRS R24, TWINT ; Test TWINT bit
+    RJMP LOOP_TWI_START
+    RET
 
-SLA_W: ; Uses r26/27 for arguments || Should contain unprepared I2C address
-    ; Grab desired address from r26
-    lsl r26 ; Shift left, leave trailing 0 as `WRITE` bit
-    sts TWDR, r26 ; Load SLA_W into TWI Data register
+SLA_W: ; Uses R26/27 for arguments || Should contain unprepared I2C address
+    ; Grab desired address from R26
+    LSL R26 ; Shift left, leave trailing 0 as `WRITE` bit
+    STS TWDR, R26 ; Load SLA_W into TWI Data register
 
-    ; Call TWI interrupt to send addr with write bit on bus
-    ldi r16, (1 << TWINT) | (1 << TWEN) | (1 << TWSTA)
-    sts TWCR, r16 ; Interrupt called
+    ; CALL TWI interrupt to send addr with write bit on bus
+    LDI R16, (1 << TWINT) | (1 << TWEN) | (1 << TWSTA)
+    STS TWCR, R16 ; Interrupt CALLed
 
 LOOP_SLA_W:
     ; wait for clear -- using method I found with gcc -O3
-    lds r24, TWCR ; Grab control register
-    sbrs r24, TWINT ; Test TWINT bit
-    rjmp LOOP_SLA_W
-    ret
+    LDS R24, TWCR ; Grab control register
+    SBRS R24, TWINT ; Test TWINT bit
+    RJMP LOOP_SLA_W
+    RET
 
 SEND_BYTE: ; Sends a byte of data on the I2C data bus || uses R26/R27 (X register)
-    sts TWDR, r26 ; Store address from X register into TWDR
+    STS TWDR, R26 ; Store address from X register into TWDR
 
-    ldi r16, (1 << TWINT) | (1 << TWEN)
-    sts TWCR, r16 ; Invoke TWI interrupt
+    LDI R16, (1 << TWINT) | (1 << TWEN)
+    STS TWCR, R16 ; Invoke TWI interrupt
 LOOP_SEND_BYTE:
-    lds r24, TWCR
-    sbrs r24, TWINT
-    rjmp LOOP_SEND_BYTE
-    ret
+    LDS R24, TWCR
+    SBRS R24, TWINT
+    RJMP LOOP_SEND_BYTE
+    RET
 
 TWI_STOP:
-    ldi r16, (1 << TWINT) | (1 << TWEN) | (1 << TWSTO)
-    sts TWCR, r16 ; Invoke TWI interrupt with stop condition
-    ret
+    LDI R16, (1 << TWINT) | (1 << TWEN) | (1 << TWSTO)
+    STS TWCR, R16 ; Invoke TWI interrupt with stop condition
+    RET

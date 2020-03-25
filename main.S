@@ -2,74 +2,85 @@
 #include "twi.S"
 #include "lcd.S"
 
-.data
+.DATA
 
-.text
-.global main
+.TEXT
+.GLOBAL main
 
 main: ; Entry point
     ; Power on LED
-    sbi _SFR_IO_ADDR(DDRD), PD2
-    sbi _SFR_IO_ADDR(PORTD), PD2
+    SBI _SFR_IO_ADDR(DDRD), PD2
+    SBI _SFR_IO_ADDR(PORTD), PD2
 
-    call INIT ; Initialization function
+    CALL INIT ; Initialization function
     
     ; Function set
-    ldi r26, 0x30
-    ldi r27, 0
-    call SEND_BYTE_CMD
+    LDI R26, 0x30
+    LDI R27, 0
+    CALL SEND_BYTE_CMD
 
     ; 5 ms delay, 24999 found using util/delay and gcc -O1
-    ldi r24, lo8(24999)
-    ldi r25, hi8(24999)
-DELAY1: sbiw r24, 1
-    brne DELAY1
-    nop
+    LDI R24, lo8(24999)
+    LDI R25, hi8(24999)
+DELAY1: SBIW R24, 1
+    BRNE DELAY1
+    NOP
 
     ; Function set
-    ldi r26, 0x30
-    ldi r27, 0
-    call SEND_BYTE_CMD
+    LDI R26, 0x30
+    LDI R27, 0
+    CALL SEND_BYTE_CMD
 
 ; 5 ms delay
-    ldi r24, lo8(24999)
-    ldi r25, hi8(24999)
-DELAY2: sbiw r24, 1
-    brne DELAY2
-    nop
+    LDI R24, lo8(24999)
+    LDI R25, hi8(24999)
+DELAY2: SBIW R24, 1
+    BRNE DELAY2
+    NOP
 
     ; Function set
-    ldi r26, 0x30
-    ldi r27, 0
-    call SEND_BYTE_CMD
+    LDI R26, 0x30
+    LDI R27, 0
+    CALL SEND_BYTE_CMD
 
     ; 150 us delay
-    ldi r24, lo8(749)
-    ldi r25, hi8(749)
-DELAY3: sbiw r24, 1
-    brne DELAY3
-    rjmp . ; 100 ns
-    nop ; 50 ns
+    LDI R24, lo8(749)
+    LDI R25, hi8(749)
+DELAY3: SBIW R24, 1
+    BRNE DELAY3
+    RJMP . ; 100 ns
+    NOP ; 50 ns
 
     ; 8 Bit request for 4-Bit Function set
-    ldi r26, 0x20
-    ldi r27, 0
-    call SEND_BYTE_CMD
+    LDI R26, 0x20
+    LDI R27, 0
+    CALL SEND_BYTE_CMD
 
     ; 4 Bit request for function set || 4-bits, 2 lines, ? font mode
-    ldi r26, 0x2c
-    ldi r27, 0
-    call SEND_NIBBLE_CMD
+    LDI R26, 0x2c
+    LDI R27, 0
+    CALL SEND_NIBBLE_CMD
 
     ; display function || display on, cursor on, blink on
-    ldi r26, 0x0f
-    ldi r27, 0
-    call SEND_NIBBLE_CMD
+    LDI R26, 0x0f
+    LDI R27, 0
+    CALL SEND_NIBBLE_CMD
+
+    LDI R26, 0x01 ; Clear screen function, takes 5ms to execute
+    LDI R27, 0
+    CALL SEND_NIBBLE_CMD
+
+    ; 5 ms delay, 24999 found using util/delay and gcc -O1
+    LDI R24, lo8(24999)
+    LDI R25, hi8(24999)
+DELAY4: SBIW R24, 1
+    BRNE DELAY4
+    NOP
 
     ; Send letter A
-    ldi r26, 0x41
-    ldi r27, 0
-    call SEND_NIBBLE_DATA
+    LDI R26, 0x41
+    LDI R27, 0
+    CALL SEND_NIBBLE_DATA
     
 L1:
-    rjmp L1 ; Loop indefinitely
+    RJMP L1 ; Loop indefinitely
