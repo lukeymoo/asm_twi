@@ -2,16 +2,17 @@
 ; This includes initialization, outputting/reading data bus
 ; Start/Stop conditions etc
 
-.section .text
-
 .global INIT
 .global TWI_START
 .global SLA_W 
 .global SEND_BYTE
+.global TWI_STOP
+
+.text
 
 INIT: ; Sets up and enables TWI Hardware
-    ldi r16, 0x11 ; Set TWBR(Bit Rate divisor) to decimal 17 @ 20 MHz to achieve 400 kHz Baud
-    sts TWBR, r16 ; Set TWBR via indirect addressing `ST` -- Z register is 16 bit encompassing R30 & R31 (LOW8 ADDR, HIGH8 ADDR)
+    ldi r16, 0x11
+    sts TWBR, r16 ; Set TWBR(Bit Rate divisor) to decimal 17 @ 20 MHz to achieve 400 kHz Baud
 
     ldi r16, (1 << TWINT) | (1 << TWEN) ; Mask for enable TWI Hardware
     sts TWCR, r16 ; Enable TWI Hardware via indirect addressing `ST`
@@ -53,4 +54,9 @@ LOOP_SEND_BYTE:
     lds r24, TWCR
     sbrs r24, TWINT
     rjmp LOOP_SEND_BYTE
+    ret
+
+TWI_STOP:
+    ldi r16, (1 << TWINT) | (1 << TWEN) | (1 << TWSTO)
+    sts TWCR, r16 ; Invoke TWI interrupt with stop condition
     ret

@@ -1,5 +1,5 @@
 CLOCK_SPEED = -D F_CPU=20000000UL
-
+INCLUDE = -Wa,-I/usr/lib/avr/include/
 
 default: compile
 
