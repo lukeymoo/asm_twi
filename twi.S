@@ -14,10 +14,12 @@ INIT: ; Sets up and enables TWI Hardware
     LDI R16, 92
     ; Was using decimal 17 before to achieve 400 KHz, however that exceeds the backpack the LCD is using
     ; We are using 100 kHz via TWBR @ decimal 92
-    STS TWBR, R16 ; Set TWBR(Bit Rate divisor) to decimal 17 @ 20 MHz to achieve 400 kHz Baud
+    STS TWBR, R16 ; Set TWBR(Bit Rate divisor) to decimal 92 @ 20 MHz to achieve 100 kHz Baud Formula(F_CPU/(16+(2*TWBR*Prescaler))
+    ; We are not using prescaler, so in formula that is set to 1, F_CPU is 20 000 000 Hz
+    ; Solved for TWBR, we arrived at decimal 92
 
     LDI R16, (1 << TWINT) | (1 << TWEN) ; Mask for enable TWI Hardware
-    STS TWCR, R16 ; Enable TWI Hardware via indirect addressing `ST`
+    STS TWCR, R16 ; Enable TWI Hardware
     RET
 
 TWI_START:
