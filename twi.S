@@ -23,7 +23,7 @@ INIT: ; Sets up and enables TWI Hardware
     RET
 
 TWI_START:
-    ; CALL TWI interrupt to generate start condition
+    ; invoke TWI interrupt to generate start condition
     LDI R16, (1 << TWINT) | (1 << TWEN) | (1 << TWSTA)
     STS TWCR, R16 ; Interrupt CALLed
 LOOP_TWI_START:
@@ -39,8 +39,8 @@ SLA_W: ; Uses R26/27 for arguments || Should contain unprepared I2C address
     STS TWDR, R26 ; Load SLA_W into TWI Data register
 
     ; CALL TWI interrupt to send addr with write bit on bus
-    LDI R16, (1 << TWINT) | (1 << TWEN) | (1 << TWSTA)
-    STS TWCR, R16 ; Interrupt CALLed
+    LDI R16, (1 << TWINT) | (1 << TWEN)
+    STS TWCR, R16 ; Interrupt called
 
 LOOP_SLA_W:
     ; wait for clear -- using method I found with gcc -O3
